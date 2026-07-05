@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Saw Board</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <div class="brand"><span class="mark">◢◤</span> Saw Board <span id="proj" class="chip"></span></div>
+    <span id="git" class="chip"></span>
+    <nav class="tabs">
+      <button class="tab active" data-tab="board">Board</button>
+      <button class="tab soon" data-tab="runs" title="Phase 2 — live run logs">Runs</button>
+      <button class="tab soon" data-tab="settings" title="Phase 2 — model / provider / key">Settings</button>
+    </nav>
+    <button id="newTask" class="new">＋ New task</button>
+  </header>
+
+  <main id="main"></main>
+
+  <footer>
+    <span id="count"></span>
+    <span class="muted">read-only · auto-refresh 2.5s · live execution &amp; task creation arrive in Phase 2</span>
+  </footer>
+
+  <div class="toast" id="toast"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -10,7 +10,28 @@ npm run board          # or: node .saw/board.mjs
 # → http://localhost:4173
 ```
 
-Port: `--port N`, `SAW_BOARD_PORT`, default `4173`.
+Port: `--port N`, `SAW_BOARD_PORT`, default `4173`. The board **always opens**, even
+in a brand-new project with no tasks — it creates `.workflow/` if missing and shows an
+empty board ready for your first spec.
+
+## File layout (edit these freely)
+
+The board is plain, dependency-free Node + HTML/CSS/JS — no build step, no bundle:
+
+```
+.saw/
+├── board.mjs            entry point (starts the server)
+├── server/
+│   ├── server.mjs       HTTP server + routes
+│   └── state.mjs        reads .workflow/ → board state (edit parsing here)
+└── ui/
+    ├── index.html       markup
+    ├── styles.css       theme + layout (the :root vars up top are the theme)
+    └── app.js           client rendering
+```
+
+Change the look in `ui/styles.css`, the columns/parsing in `server/state.mjs`, the
+markup in `ui/index.html`. Refresh the browser — no rebuild.
 
 ## What it shows
 
