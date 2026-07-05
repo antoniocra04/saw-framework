@@ -48,21 +48,30 @@ markup in `ui/index.html`. Refresh the browser — no rebuild.
 State lives in files, so the board is always accurate and survives restarts — it's a
 view over `.workflow/`, never a second source of truth.
 
-## Phase 2 (coming): live execution
+## Live execution
 
-The board's API and UI are built to add, next:
+The board runs the workflow for you — no terminal needed (requires `opencode` on PATH):
 
-- **Run workflow** button per card → runs the `/run-task` pipeline headlessly via
-  `opencode run --command run-task <id> --format json`, with the card advancing
-  through columns automatically as the agent updates the spec's `status:`.
-- **Drag a card** to a column → runs that stage.
-- **Live run logs** streamed from opencode's JSON events; questions/`BLOCKED` states
-  surfaced on the card with a notification, answered in place (session `--continue`).
-- **Settings tab**: model, provider, and API key (via `opencode providers` +
-  `opencode.json`).
+- **Run button** on each card runs its next step via `opencode run --command …`
+  (a `ready` card runs the whole `/run-task` pipeline; a `qa` card runs `/qa`, etc.).
+  The card then advances through columns on its own as the agent updates the spec's
+  `status:` on disk.
+- **＋ New task** asks for a description and runs `/spec` — the analyst agent writes
+  the spec, which appears on the board.
+- **Runs tab** streams the live log of a run over SSE, with a list of past runs and
+  their `OK` / `BLOCKED` / `FAIL` result. If a run ends `BLOCKED` (e.g. a missing
+  Design Direction, or unmet dependency), you fix it and re-run.
+- **Settings tab** lists the models `opencode` knows and writes your choice to
+  `opencode.json`. API keys stay in `opencode auth login` — never edited from the browser.
 
-Until then the board is read-only: it visualizes everything and lets you copy the
-exact command to run in `opencode`.
+Runs are serialized (one at a time — agents share a git branch) and each asks for
+confirmation first, since a run spends tokens and can change code. Every run is a real
+`opencode` process; completion is detected from Saw's own `RESULT:` line, so the board
+doesn't depend on opencode's internal event format.
+
+**Still manual (roadmap):** dragging a card between columns to trigger a stage, and
+answering an agent's mid-run question in place. For now a `BLOCKED` result tells you
+exactly what's needed; you resolve it and hit Run again.
 
 ## Why Saw ships its own board
 
