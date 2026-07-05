@@ -28,7 +28,7 @@ const rm = (p) => fs.rmSync(p, { recursive: true, force: true });
 const cp = (src, dst) => fs.cpSync(src, dst, { recursive: true });
 
 // 1. harness files: wipe and re-copy from root
-for (const item of ['AGENTS.md', 'opencode.json', '.opencode', 'docs']) {
+for (const item of ['AGENTS.md', 'opencode.json', '.opencode', '.saw', 'docs']) {
   rm(path.join(templateDir, item));
   cp(path.join(rootDir, item), path.join(templateDir, item));
 }

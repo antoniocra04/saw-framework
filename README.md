@@ -18,10 +18,10 @@ repository and turns "the agent says it's done" into "the agent proved it's done
 nothing merges until the spec is verified, every acceptance criterion is backed by real
 command output, and an independent QA agent has issued a PASS verdict.
 
-Built for [opencode](https://opencode.ai). Optional kanban UI via
-[Vibe Kanban](https://github.com/BloopAI/vibe-kanban). Saw is a **workflow** framework,
-not a stack — it adds process and quality gates on top of any language or stack you like,
-never boilerplate or a UI library of its own.
+Built for [opencode](https://opencode.ai), with a built-in visual board
+(`npm run board`). Saw is a **workflow** framework, not a stack — it adds process and
+quality gates on top of any language or stack you like, never boilerplate or a UI
+library of its own.
 
 [Документация на русском →](README.ru.md)
 
@@ -111,8 +111,8 @@ step by step:
 /run-task TASK-001        # all gates, max 3 QA iterations, stops before merge
 ```
 
-Prefer a UI? `npm run board` opens Vibe Kanban; a card with `/run-task-vk TASK-001`
-runs the gates inside an isolated git worktree. See [docs/vibe-kanban.md](docs/vibe-kanban.md).
+Prefer a UI? `npm run board` opens the built-in visual kanban (zero-dependency,
+offline) — see [docs/board.md](docs/board.md).
 
 ## Features
 
@@ -136,7 +136,7 @@ runs the gates inside an isolated git worktree. See [docs/vibe-kanban.md](docs/v
 | [Command reference](docs/commands.md) | All 16 commands: what, when, stop conditions |
 | [Design quality](docs/design.md) | The anti-slop system: Design Direction, opt-in `gates:`, the design gate |
 | [Model strategy](docs/models.md) | Which model per role, config examples, cost logic |
-| [Vibe Kanban](docs/vibe-kanban.md) | Board setup, card types, parallel execution rules |
+| [Saw Board](docs/board.md) | The built-in visual kanban; live execution roadmap |
 | [FAQ](docs/faq.md) | Common questions and honest answers |
 
 ## When *not* to use Saw

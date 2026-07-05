@@ -17,7 +17,6 @@ const path = require('path');
 const readline = require('readline');
 const { spawnSync } = require('child_process');
 
-const VK_VERSION = '^0.1.44';
 const TEMPLATE_DIR = path.join(__dirname, '..', 'template');
 
 /* --------------------------------------------------------------- pretty --- */
@@ -211,8 +210,6 @@ async function scaffold(rawName, flags) {
 
   const target = path.resolve(process.cwd(), name);
   const doGit = !flags.noGit && env.git && (await confirm('Initialize a git repository with an initial commit?', true));
-  const doInstall =
-    !flags.noInstall && env.npm && (await confirm('Install the Vibe Kanban board dependency now (npm install)?', false));
 
   console.log(`\n  Creating ${c.bold(name)} …`);
   fs.cpSync(TEMPLATE_DIR, target, { recursive: true });
@@ -235,19 +232,12 @@ async function scaffold(rawName, flags) {
     console.log(gitDone ? `  ${ok} Git repository initialized.` : `  ${warn} git init failed — do it manually later.`);
   }
 
-  if (doInstall) {
-    console.log(`\n  Installing dependencies …\n`);
-    const installed = run('npm install', target);
-    console.log(installed ? `\n  ${ok} Dependencies installed.` : `\n  ${warn} npm install failed — run it yourself later.`);
-  }
-
   // final report
   console.log(`\n  ${c.green(c.bold('Done!'))} Your project is ready at ${c.cyan(name)}\n`);
   console.log('  ' + c.bold('Next steps'));
   console.log(`    ${c.dim('$')} cd ${name}`);
-  if (!doInstall && env.npm) console.log(`    ${c.dim('$')} npm install          ${c.dim('# optional: the Vibe Kanban board')}`);
   console.log(`    ${c.dim('$')} opencode             ${c.dim('# then:  /spec  describe your first task')}`);
-  if (env.npm) console.log(`    ${c.dim('$')} npm run board        ${c.dim('# or drive it from the kanban UI')}`);
+  console.log(`    ${c.dim('$')} npm run board        ${c.dim('# open the visual Saw board (no install needed)')}`);
   console.log();
   console.log(`  ${c.dim('Docs: docs/getting-started.md · docs/concepts.md · docs/faq.md')}`);
   console.log();
@@ -277,7 +267,7 @@ async function initProject(flags) {
   }
 
   // 2. harness directories — copy, never overwrite
-  for (const dir of ['.opencode', '.workflow', 'docs']) {
+  for (const dir of ['.opencode', '.workflow', '.saw', 'docs']) {
     copySkipExisting(path.join(TEMPLATE_DIR, dir), path.join(target, dir), report, dir + '/');
   }
 
@@ -331,37 +321,27 @@ async function initProject(flags) {
     report.created.push('docs/SAW-QUICKSTART.md');
   }
 
-  // 6. package.json — add board script + vibe-kanban devDep (Node projects only)
+  // 6. package.json — wire the built-in board script (Node projects only).
+  //    The board itself is a zero-dep .saw/board.mjs, so there is no dependency to add.
   const pkgPath = path.join(target, 'package.json');
-  let hasNpm = false;
   if (fs.existsSync(pkgPath)) {
     try {
       const raw = readText(pkgPath);
       const pkg = JSON.parse(raw);
-      const added = [];
       pkg.scripts = pkg.scripts || {};
       if (!pkg.scripts.board) {
-        pkg.scripts.board = 'vibe-kanban';
-        added.push('scripts.board');
-      }
-      pkg.devDependencies = pkg.devDependencies || {};
-      if (!pkg.devDependencies['vibe-kanban']) {
-        pkg.devDependencies['vibe-kanban'] = VK_VERSION;
-        added.push('devDependencies.vibe-kanban');
-      }
-      if (added.length > 0) {
+        pkg.scripts.board = 'node .saw/board.mjs';
         const indent = /\n(\s+)"/.exec(raw) ? /\n(\s+)"/.exec(raw)[1] : '  ';
         fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, indent) + '\n');
-        report.merged.push(`package.json (added: ${added.join(', ')})`);
+        report.merged.push('package.json (added: scripts.board)');
       } else {
-        report.skipped.push('package.json (board script and vibe-kanban already present)');
+        report.skipped.push('package.json (board script already present)');
       }
-      hasNpm = true;
     } catch {
-      report.notes.push(`${warn} could not parse package.json — add "board": "vibe-kanban" and the vibe-kanban devDependency manually`);
+      report.notes.push(`${warn} could not parse package.json — add "board": "node .saw/board.mjs" to scripts manually`);
     }
   } else {
-    report.notes.push(`no package.json (non-Node project) — run the board with: npx vibe-kanban@${VK_VERSION.replace('^', '')}`);
+    report.notes.push('no package.json (non-Node project) — run the board with: node .saw/board.mjs');
   }
 
   // 7. report
@@ -375,9 +355,9 @@ async function initProject(flags) {
   console.log('  ' + c.bold('Next steps'));
   console.log(`    1. Put your real test/lint commands into .workflow/templates/spec-template.md`);
   console.log(`       ${c.dim('(replace the <command> placeholders)')}`);
-  console.log(hasNpm ? `    2. ${c.dim('$')} npm install && npm run board   ${c.dim('# or: opencode')}` : `    2. ${c.dim('$')} opencode                       ${c.dim('# board: npx vibe-kanban')}`);
-  console.log(`    3. ${c.dim('$')} opencode  →  /spec describe a small task  →  /run-task TASK-001`);
-  console.log(`\n  ${c.dim('Docs: docs/getting-started.md · docs/vibe-kanban.md · docs/SAW-QUICKSTART.md')}\n`);
+  console.log(`    2. ${c.dim('$')} opencode  →  /spec describe a small task  →  /run-task TASK-001`);
+  console.log(`    3. ${c.dim('$')} npm run board  ${c.dim('(or: node .saw/board.mjs)  — the visual Saw board')}`);
+  console.log(`\n  ${c.dim('Docs: docs/getting-started.md · docs/board.md · docs/SAW-QUICKSTART.md')}\n`);
 }
 
 /** Recursively copy srcDir into dstDir, never overwriting existing files. */

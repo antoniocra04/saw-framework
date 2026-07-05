@@ -8,8 +8,8 @@
 
 Scaffold or retrofit a project with the Saw quality workflow for AI-assisted development:
 an [opencode](https://opencode.ai) harness (roles, quality gates, evidence-based delivery)
-plus a preconfigured [Vibe Kanban](https://github.com/BloopAI/vibe-kanban) board. Nothing
-merges ("cuts") until it's been measured: spec verified, criteria proven, QA verdict passed.
+plus a built-in zero-dependency visual board (`npm run board`). Nothing merges ("cuts")
+until it's been measured: spec verified, criteria proven, QA verdict passed.
 
 Process design adapted from [safe-agentic-workflow](https://github.com/bybren-llc/safe-agentic-workflow)
 (© ByBren, LLC / J. Scott Graham, MIT + attribution).
@@ -39,8 +39,8 @@ Non-destructive and idempotent:
 - `.opencode/`, `.workflow/`, `docs/` — copied, existing files never overwritten
 - `AGENTS.md` — created, or the SAW contract is appended below your existing rules
 - `opencode.json` — created, or missing top-level keys merged in (yours win)
-- `package.json` — `board` script + `vibe-kanban` devDependency added if absent
-  (indentation preserved); non-Node projects: use `npx vibe-kanban` instead
+- `package.json` — a `board` script (`node .saw/board.mjs`) added if absent
+  (indentation preserved); the board itself is zero-dependency, nothing to install
 - your `README.md` is never touched (quickstart lands in `docs/SAW-QUICKSTART.md`)
 - nothing is committed — review with `git diff`
 
