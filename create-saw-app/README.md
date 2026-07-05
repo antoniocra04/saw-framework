@@ -1,7 +1,7 @@
 # create-saw-app
 
 <p align="center">
-  <img src="template/docs/assets/logo.png" alt="Saw" width="360">
+  <img src="https://raw.githubusercontent.com/antoniocra04/saw-framework/main/docs/assets/logo.png" alt="Saw" width="360">
 </p>
 
 **Saw** — measure twice, cut once for AI-written code.
