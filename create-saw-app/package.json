@@ -4,6 +4,13 @@
   "description": "Saw — measure twice, cut once for AI-written code. Scaffolds a quality-gated AI development workflow: opencode harness (roles & gates) + Vibe Kanban board, preconfigured.",
   "keywords": ["create", "scaffold", "ai", "opencode", "vibe-kanban", "workflow", "agents", "saw"],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/antoniocra04/saw-framework.git",
+    "directory": "create-saw-app"
+  },
+  "homepage": "https://github.com/antoniocra04/saw-framework/tree/main/create-saw-app#readme",
+  "bugs": "https://github.com/antoniocra04/saw-framework/issues",
   "engines": {
     "node": ">=18"
   },
