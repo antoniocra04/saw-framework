@@ -73,10 +73,12 @@ models do the typing.
 **New project** (any stack — the first task bootstraps whatever you want):
 
 ```bash
-npx create-saw-app my-project
-cd my-project
-opencode
+npx create-saw-app
 ```
+
+The CLI checks your environment (Node, git, opencode), offers to install anything
+missing, asks for a project name, and sets up git for you. Prefer non-interactive?
+`npx create-saw-app my-project --yes` accepts every default (handy for CI).
 
 **Existing project** (any language; non-destructive, idempotent):
 
