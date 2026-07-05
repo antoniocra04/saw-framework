@@ -1,0 +1,26 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "edit": "allow",
+    "bash": {
+      "*": "allow",
+      "git push *": "ask",
+      "git push": "ask",
+      "rm -rf *": "deny",
+      "git reset --hard *": "ask",
+      "git checkout -- *": "ask"
+    },
+    "webfetch": "ask"
+  },
+  "agent": {
+    "build": {
+      "permission": {
+        "edit": {
+          "*": "allow",
+          ".workflow/qa/**": "deny",
+          ".workflow/security/**": "deny"
+        }
+      }
+    }
+  }
+}

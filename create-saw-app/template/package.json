@@ -1,0 +1,11 @@
+{
+  "name": "{{PROJECT_NAME}}",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "board": "vibe-kanban"
+  },
+  "devDependencies": {
+    "vibe-kanban": "^0.1.44"
+  }
+}

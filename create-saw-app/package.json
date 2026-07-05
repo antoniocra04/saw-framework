@@ -1,0 +1,21 @@
+{
+  "name": "create-saw-app",
+  "version": "0.1.0",
+  "description": "Saw — measure twice, cut once for AI-written code. Scaffolds a quality-gated AI development workflow: opencode harness (roles & gates) + Vibe Kanban board, preconfigured.",
+  "keywords": ["create", "scaffold", "ai", "opencode", "vibe-kanban", "workflow", "agents", "saw"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "create-saw-app": "bin/cli.js"
+  },
+  "scripts": {
+    "sync": "node scripts/sync-template.js",
+    "prepack": "node scripts/sync-template.js"
+  },
+  "files": [
+    "bin",
+    "template"
+  ]
+}
