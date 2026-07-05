@@ -23,8 +23,9 @@ npm install
 npm run board        # kanban UI; or just: opencode
 ```
 
-Stack-agnostic: the first workflow task (`/spec`) bootstraps whatever stack you want —
-the scaffolder installs the development *system*, not a framework.
+Saw is a **workflow** framework, not a stack: the first task (`/spec`) bootstraps
+whatever stack you want (Next.js, FastAPI, a Rust CLI…). The scaffolder adds the
+workflow, never boilerplate.
 
 ## Existing project (any language)
 

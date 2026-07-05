@@ -2,8 +2,9 @@
 
 ### Is Saw a framework like Next.js?
 
-No. Saw installs a development *process* — agents, gates, artifacts — not
-application code. Your stack can be anything; the first task bootstraps it. That's
+It's a *workflow* framework, not a *stack* framework. Next.js ships application code
+and picks your UI library; Saw ships agents, gates, and artifacts, and picks nothing
+about your stack. Your stack can be anything — the first task bootstraps it. That's
 also why `create-saw-app init` works in Python/Go/Rust repos.
 
 ### Do I need Vibe Kanban?

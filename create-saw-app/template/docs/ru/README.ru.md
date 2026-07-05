@@ -10,8 +10,9 @@ Saw — воркфлоу разработки с гейтами качества
 реальным выводом команд, а независимый QA-агент не вынес вердикт PASS.
 
 Работает на [opencode](https://opencode.ai). Опциональный kanban-UI —
-[Vibe Kanban](https://github.com/BloopAI/vibe-kanban). Подходит для любого языка и
-стека: Saw ставит *процесс* разработки, а не фреймворк.
+[Vibe Kanban](https://github.com/BloopAI/vibe-kanban). Saw — это **workflow**-фреймворк,
+а не стек: он добавляет процесс и гейты качества поверх любого языка и стека,
+а не бойлерплейт или свою UI-библиотеку.
 
 [English documentation →](README.md)
 

@@ -19,8 +19,9 @@ nothing merges until the spec is verified, every acceptance criterion is backed 
 command output, and an independent QA agent has issued a PASS verdict.
 
 Built for [opencode](https://opencode.ai). Optional kanban UI via
-[Vibe Kanban](https://github.com/BloopAI/vibe-kanban). Works with any language or stack —
-Saw installs a development *process*, not a framework.
+[Vibe Kanban](https://github.com/BloopAI/vibe-kanban). Saw is a **workflow** framework,
+not a stack — it adds process and quality gates on top of any language or stack you like,
+never boilerplate or a UI library of its own.
 
 [Документация на русском →](README.ru.md)
 
