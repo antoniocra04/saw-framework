@@ -6,6 +6,11 @@ created: YYYY-MM-DD
 # Tasks that must be `done` (merged to base) before this one may start.
 # Example: depends: [TASK-004, TASK-005]. Empty list = can start anytime.
 depends: []
+# Optional specialist gates this task opts into. Core gates (QA, security) ALWAYS run
+# and are not listed here. Add a tag only when the task needs that extra review:
+#   design — task touches anything users see (requires .workflow/design/DIRECTION.md)
+# Empty list = backend/logic only: no specialist gate runs. See the gate registry in AGENTS.md.
+gates: []
 ---
 
 # TASK-NNN — <title>
@@ -25,6 +30,13 @@ As a <role>, I want <capability>, so that <benefit>.
 - [ ] Linter passes: `<command>`
 - [ ] No secrets or credentials in the diff
 - [ ] Docs updated if behavior described in them changed
+
+## Design Direction (only when `gates:` includes `design`)
+<!-- Which DIRECTION.md sections apply hardest here + task-specific visual AC.
+     Visual AC must be checkable: token-only colors, named signature element present,
+     specific typography usage — not "looks good". Delete section if design gate is off. -->
+- Applies: <DIRECTION.md sections>
+- [ ] Visual AC: <checkable rule> (verify: grep/inspect <what>)
 
 ## Patterns to Reuse
 <!-- Filled by BSA during pattern discovery. File paths + what to reuse from them. -->

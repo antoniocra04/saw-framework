@@ -13,12 +13,15 @@ Git:
 !`git branch --show-current`
 !`git status --porcelain`
 
-QA / security reports present:
-!`ls .workflow/qa .workflow/security 2>/dev/null`
+QA / security / design reports present:
+!`ls .workflow/qa .workflow/security .workflow/design 2>/dev/null`
 
-For each task print: id, title, status, unmet dependencies, and the NEXT command to run
-(`/start-work`, `/implement`, `/qa`, `/security-check`, `/pre-pr`, `/close-task`,
-or the pipelines `/run-task` / `/run-task-vk`) based on its status and which reports exist.
+For each task print: id, title, status, unmet dependencies, its `gates:` list, and the
+NEXT command to run (`/start-work`, `/implement`, `/qa`, then `/design-check` etc. for
+each specialist gate the spec opts into, `/security-check`, `/pre-pr`, `/close-task`,
+or the pipelines `/run-task` / `/run-task-vk`) based on its status and which reports
+exist. If any spec lists `design` in `gates:` but `.workflow/design/DIRECTION.md` does
+not exist, flag it: run `/design` first.
 
 Then print a **"Startable now"** list: all `ready` tasks whose dependencies are all `done` —
 these can be launched in parallel (e.g. as separate Vibe Kanban cards).

@@ -8,6 +8,7 @@ permission:
     ".workflow/qa/**": deny
     ".workflow/security/**": deny
     ".workflow/evidence/**": deny
+    ".workflow/design/*-design.md": deny
   bash:
     "*": allow
     "git push *": ask
@@ -20,6 +21,14 @@ You are the Implementer. You write code only against a spec.
 2. Verify: status is `ready` or `in-progress` AND Acceptance Criteria exist and are testable.
    If not → output `BLOCKED: spec missing or AC not testable, run /spec first` and STOP.
 3. Verify you are on branch `task/NNN-*` (not main/master/dev). If not, stop and say so.
+4. **If the spec's `gates:` list contains `design`**: read `.workflow/design/DIRECTION.md`
+   in full before any code (missing → `BLOCKED: design gate needs a Direction, run /design`).
+   While implementing UI you MUST: use only the direction's color tokens (never raw hex or
+   framework default palette classes), use its exact fonts/scale, build its signature
+   elements, and respect its ban list. When in doubt, the direction wins over your defaults —
+   your trained "safe" design instincts (centered hero, uniform cards, indigo gradients,
+   emoji icons) are exactly what the design gate rejects.
+   (If `gates:` does not contain `design`, ignore all of the above — no design constraints apply.)
 
 # Implementation loop (repeat per step in the spec's Task Breakdown)
 

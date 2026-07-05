@@ -21,6 +21,15 @@ model. The *concepts* (spec files, gates, evidence, role separation) are portabl
 and the upstream safe-agentic-workflow project ships harnesses for Claude Code,
 Gemini CLI, and Codex CLI if you live elsewhere.
 
+### Why does AI-built UI look so generic, and what does Saw do about it?
+
+Because "beautiful" can't fail a check, models regress to the statistical mean of
+the web — centered hero, indigo gradient, Inter, emoji icons. Saw makes aesthetics
+gateable: `/design` produces a Design Direction (exact tokens, fonts, signature
+elements, ban list), UI specs opt into the `design` gate with checkable visual AC, and the
+`/design-check` gate FAILs diffs that use raw hex, framework default palettes, or
+known slop patterns. Full story: [Design quality](design.md).
+
 ### QA failed my code but it actually works. Why?
 
 Almost always one of: (1) the acceptance criterion wasn't testable, so QA couldn't

@@ -10,7 +10,8 @@ Specs present:
 !`grep -H "^depends:" .workflow/specs/*.md 2>/dev/null`
 
 ## Per task, in order
-1. Run the exact `/run-task` pipeline (Phase 0–5, same stop-conditions, max 3 QA attempts).
+1. Run the exact `/run-task` pipeline (Phase 0–5 incl. any specialist gates the spec's
+   `gates:` list opts into, same stop-conditions, max 3 QA attempts / 2 design attempts).
 2. If the task ends `RESULT: OK` (all gates passed):
    - `git checkout <base>` and merge the task branch with `--no-ff`
      (merge commit per task → one `git revert -m 1` undoes the whole task later).

@@ -33,6 +33,16 @@ Invoke the `qas` subagent: "Run independent QA for $1 per your full procedure."
 - QA verdict FAIL on attempt 3 → set spec status to `blocked`, output
   `RESULT: BLOCKED — QA failed 3x, needs human (or stronger model)`, stop.
 
+## Phase 3.5 — Specialist gates (only the ones the spec opts into)
+Read the spec's `gates:` frontmatter list. If empty → skip this phase entirely.
+For each tag, run its gate per the registry in AGENTS.md. Currently defined:
+- `design` → invoke the `designer` subagent: "Run the design review for $1 (REVIEW mode)."
+  - FAIL and attempts < 2 → re-invoke `implementer` with the findings from
+    `.workflow/design/$1-design.md` (styling-level fixes only, then re-run the full
+    test suite), then re-run the design review. Count the attempt.
+  - FAIL on attempt 2 → set spec status `blocked`,
+    `RESULT: BLOCKED — design failed 2x, needs human art direction`, stop.
+
 ## Phase 4 — Security
 Invoke the `security` subagent for $1. FAIL with critical/high findings →
 `RESULT: BLOCKED — security`, stop.

@@ -119,6 +119,7 @@ runs the gates inside an isolated git worktree. See [docs/vibe-kanban.md](docs/v
 - **Spec-gated development** — testable acceptance criteria or no code, period
 - **Independent QA with rejection authority** — fresh context, read-only on code, unlimited iterations (capped at 3 per autonomous run)
 - **Evidence, not claims** — a criterion counts only with pasted command output
+- **Anti-slop design gate** — a Design Direction contract (tokens, type, ban list) plus a designer agent that FAILs generic "AI look" UI ([docs/design.md](docs/design.md))
 - **Permission-enforced roles** — boundaries in agent config, not in prompts
 - **Autonomous pipelines** — `/run-task` (one task), `/run-backlog` (batch with auto-merge and one-command rollback)
 - **Parallel-safe** — `depends:` in spec frontmatter gates task startup order
@@ -132,7 +133,8 @@ runs the gates inside an isolated git worktree. See [docs/vibe-kanban.md](docs/v
 |---|---|
 | [Getting started](docs/getting-started.md) | Install, first task end-to-end, configuring your test commands |
 | [Core concepts](docs/concepts.md) | Layers, artifacts, lifecycle, gates, roles, the evidence principle |
-| [Command reference](docs/commands.md) | All 14 commands: what, when, stop conditions |
+| [Command reference](docs/commands.md) | All 16 commands: what, when, stop conditions |
+| [Design quality](docs/design.md) | The anti-slop system: Design Direction, opt-in `gates:`, the design gate |
 | [Model strategy](docs/models.md) | Which model per role, config examples, cost logic |
 | [Vibe Kanban](docs/vibe-kanban.md) | Board setup, card types, parallel execution rules |
 | [FAQ](docs/faq.md) | Common questions and honest answers |

@@ -44,7 +44,7 @@ const wfDst = path.join(templateDir, '.workflow');
 rm(wfDst);
 fs.mkdirSync(wfDst, { recursive: true });
 cp(path.join(wfSrc, 'templates'), path.join(wfDst, 'templates'));
-for (const dir of ['specs', 'qa', 'security', 'evidence']) {
+for (const dir of ['specs', 'qa', 'security', 'evidence', 'design']) {
   fs.mkdirSync(path.join(wfDst, dir), { recursive: true });
   fs.writeFileSync(path.join(wfDst, dir, '.gitkeep'), '');
 }
