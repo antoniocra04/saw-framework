@@ -28,9 +28,17 @@ const rm = (p) => fs.rmSync(p, { recursive: true, force: true });
 const cp = (src, dst) => fs.cpSync(src, dst, { recursive: true });
 
 // 1. harness files: wipe and re-copy from root
-for (const item of ['AGENTS.md', 'opencode.json', '.opencode', '.saw', 'docs']) {
+for (const item of ['AGENTS.md', 'opencode.json', '.saw', 'docs']) {
   rm(path.join(templateDir, item));
   cp(path.join(rootDir, item), path.join(templateDir, item));
+}
+
+// .opencode: copy ONLY the harness parts. Running opencode inside this repo
+// drops runtime junk into .opencode/ (node_modules, package.json, caches) —
+// that must never ship inside the scaffold template.
+rm(path.join(templateDir, '.opencode'));
+for (const sub of ['agents', 'commands']) {
+  cp(path.join(rootDir, '.opencode', sub), path.join(templateDir, '.opencode', sub));
 }
 
 // Russian README ships inside template docs
