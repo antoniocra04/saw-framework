@@ -133,7 +133,11 @@ export function start(root = process.cwd(), port = 4173) {
       } else {
         args = [];
       }
-      const r = runner.startRun(root, command, args, body.model);
+      // a model must be known before we spawn: headless opencode with no model
+      // configured hangs waiting for an interactive selection nobody can see
+      const model = body.model || readModel(root);
+      if (!model) return json(res, 400, { error: 'No model configured. Open Settings and choose a default model first.' });
+      const r = runner.startRun(root, command, args, model);
       return r.error ? json(res, r.code || 500, { error: r.error }) : json(res, 200, { id: r.id });
     }
 

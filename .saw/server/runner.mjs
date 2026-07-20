@@ -71,15 +71,18 @@ export function startRun(root, command, args, model) {
   const argv = ['run', '--command', command, ...args, '--auto'];
   if (model) argv.push('--model', model);
 
-  const job = { id, command, args, model: model || null, status: 'running', startedAt: Date.now(), endedAt: null, exitCode: null, result: null, lines: [] };
+  const job = { id, command, args, model: model || null, status: 'running', startedAt: Date.now(), endedAt: null, exitCode: null, result: null, lines: [], lastLineAt: Date.now() };
   jobs.set(id, job);
   activeId = id;
 
   const record = (text, stream) => {
-    const entry = { t: Date.now(), stream, text };
+    // strip ANSI colors so the browser console shows clean text
+    const clean = text.replace(/\x1b\[[0-9;]*m/g, '');
+    const entry = { t: Date.now(), stream, text: clean };
     job.lines.push(entry);
+    job.lastLineAt = Date.now();
     if (job.lines.length > 5000) job.lines.shift();
-    const m = RESULT_RE.exec(text);
+    const m = RESULT_RE.exec(clean);
     if (m) job.result = m[1].toUpperCase();
     emit(id, { type: 'line', entry });
   };
@@ -89,7 +92,9 @@ export function startRun(root, command, args, model) {
 
   let child;
   try {
-    child = spawn(bin, argv, { cwd: root, windowsHide: true });
+    // stdin: 'ignore' — if opencode tries to ask something interactively it gets
+    // EOF and fails fast with an error we can show, instead of hanging forever.
+    child = spawn(bin, argv, { cwd: root, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
   } catch (e) {
     job.status = 'failed';
     activeId = null;
@@ -103,12 +108,27 @@ export function startRun(root, command, args, model) {
   child.stdout.on('data', (c) => pump(c, 'out'));
   child.stderr.on('data', (c) => pump(c, 'err'));
   child.on('error', (e) => record('process error: ' + e.message, 'err'));
+
+  // watchdog: silence for 60s usually means opencode is stuck on something
+  // interactive (model/provider selection, auth). Tell the user what to check.
+  let warned = false;
+  const watchdog = setInterval(() => {
+    if (job.status !== 'running') return clearInterval(watchdog);
+    const quiet = Date.now() - job.lastLineAt;
+    if (quiet > 60000 && !warned) {
+      warned = true;
+      record('… no output for 60s. The agent may be waiting for a model/provider/auth. Check Settings (model set? key added?), or press Stop and run "opencode" in the terminal once to complete setup.', 'meta');
+    }
+  }, 10000);
+
   child.on('close', (code) => {
+    clearInterval(watchdog);
     job.status = job.result === 'BLOCKED' || job.result === 'FAIL' ? 'failed' : code === 0 ? 'done' : 'failed';
     job.exitCode = code;
     job.endedAt = Date.now();
     job.child = null;
     activeId = null;
+    if (code === 0 && !job.result) record('run ended without a RESULT line — likely an opencode-level error above (auth/model/config).', 'meta');
     emit(id, { type: 'status', status: job.status, exitCode: code, result: job.result });
   });
 

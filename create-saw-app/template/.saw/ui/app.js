@@ -86,7 +86,8 @@ async function renderRuns() {
     ? jobs
         .map((j) => {
           const dot = j.status === 'running' ? 'run' : j.result === 'OK' ? 'ok' : j.status === 'done' ? 'ok' : 'fail';
-          return `<button class="joblink${j.id === streamJobId ? ' sel' : ''}" data-job="${j.id}"><span class="dot ${dot}"></span> /${j.command} ${(j.args || []).join(' ')} <span class="jstat">${j.result || j.status}</span></button>`;
+          const stop = j.status === 'running' ? `<span class="jstop" data-stop="${j.id}" title="Stop this run">⏹</span>` : '';
+          return `<button class="joblink${j.id === streamJobId ? ' sel' : ''}" data-job="${j.id}"><span class="dot ${dot}"></span> /${j.command} ${esc((j.args || []).join(' '))} ${stop}<span class="jstat">${j.result || j.status}</span></button>`;
         })
         .join('')
     : '<div class="empty" style="opacity:.5">No runs yet — hit a Run button on a card.</div>';
@@ -266,6 +267,12 @@ document.addEventListener('click', (e) => {
   }
   if (run && run.dataset.human) {
     toast('This step needs you — finish the spec or review the blocker');
+    return;
+  }
+  const stop = e.target.closest('.jstop');
+  if (stop && stop.dataset.stop) {
+    fetch(`/api/jobs/${stop.dataset.stop}/stop`, { method: 'POST' });
+    toast('Stopping run…');
     return;
   }
   const job = e.target.closest('.joblink');
