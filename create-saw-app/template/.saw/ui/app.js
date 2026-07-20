@@ -123,24 +123,71 @@ function openStream(id) {
 
 /* ---------------------------------------------------------------- settings -- */
 
-async function renderSettings() {
-  const [s, m] = await Promise.all([fetch('/api/settings').then((x) => x.json()), fetch('/api/models').then((x) => x.json())]);
-  const models = m.models || [];
-  const opts = models.length ? models.map((x) => `<option ${x === s.model ? 'selected' : ''}>${esc(x)}</option>`).join('') : `<option>${esc(s.model || '(none configured)')}</option>`;
+// Renders the shell synchronously (instant tab switch), then fills async.
+function renderSettings() {
   $('main').innerHTML =
     `<div class="settings"><h2>Settings</h2>` +
-    `<label>Model <span class="hint2">written to opencode.json</span></label>` +
-    `<div class="row"><select id="modelSel">${opts}</select><button id="saveModel">Save</button></div>` +
-    (models.length ? '' : `<p class="hint2">Run <code>opencode models</code> availability depends on opencode being on PATH and authenticated.</p>`) +
-    `<label style="margin-top:20px">Provider &amp; API key</label>` +
-    `<p class="hint2">Manage credentials with <code>opencode auth login</code> in your terminal (keys aren't edited from the browser for safety). Current opencode on PATH: <b>${env.opencode ? 'yes' : 'no'}</b>.</p>` +
-    `</div>`;
+    `<div class="sgroup"><label>Default model <span class="hint2">saved to opencode.json</span></label>` +
+    `<div class="row"><select id="modelSel"><option>loading…</option></select><button id="saveModel">Save</button></div></div>` +
+    `<div class="sgroup"><label>Add / update a provider key</label>` +
+    `<div class="row"><input id="provId" placeholder="provider id — anthropic, openai, openrouter…" autocomplete="off"><input id="provKey" type="password" placeholder="API key" autocomplete="off"><button id="saveProv">Save</button></div>` +
+    `<p class="hint2">Stored in <code>opencode.json</code> → <code>provider.&lt;id&gt;.options.apiKey</code>. Don't commit real keys. OAuth-based providers: run <code>opencode auth login</code>.</p></div>` +
+    `<div class="sgroup"><label>Configured providers <span class="hint2">opencode auth list</span></label>` +
+    `<pre id="authList" class="authbox">loading…</pre></div></div>`;
+
+  fetch('/api/settings').then((x) => x.json()).then((s) => (env.model = s.model));
+  fetch('/api/models').then((x) => x.json()).then((m) => {
+    const sel = $('modelSel');
+    if (!sel) return;
+    const list = m.models || [];
+    sel.innerHTML = list.length ? list.map((x) => `<option ${x === env.model ? 'selected' : ''}>${esc(x)}</option>`).join('') : `<option>${esc(env.model || '(none — check opencode auth)')}</option>`;
+  });
+  const loadAuth = () => fetch('/api/auth').then((x) => x.json()).then((a) => { const el = $('authList'); if (el) el.textContent = a.text; });
+  loadAuth();
+
   $('saveModel').onclick = async () => {
     const model = $('modelSel').value;
     await fetch('/api/settings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ model }) });
     env.model = model;
     toast('Model saved: ' + model);
   };
+  $('saveProv').onclick = async () => {
+    const id = $('provId').value.trim();
+    const apiKey = $('provKey').value;
+    const r = await fetch('/api/provider', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, apiKey }) }).then((x) => x.json());
+    if (r.error) return toast(r.error);
+    $('provKey').value = '';
+    toast('Saved provider: ' + r.id);
+    loadAuth();
+  };
+}
+
+// Custom modal (replaces window.prompt/confirm). Resolves with onConfirm's return
+// value (or true), or null on cancel/Esc/overlay-click.
+function openModal({ title, bodyHTML, confirmLabel = 'OK', cancelLabel = 'Cancel', onConfirm }) {
+  return new Promise((resolve) => {
+    const root = $('modalRoot');
+    root.innerHTML =
+      `<div class="overlay"><div class="modal"><h3>${esc(title)}</h3>` +
+      `<div class="mbody">${bodyHTML}</div>` +
+      `<div class="mactions"><button class="mbtn mcancel">${esc(cancelLabel)}</button><button class="mbtn mok">${esc(confirmLabel)}</button></div></div></div>`;
+    const close = (v) => {
+      root.innerHTML = '';
+      document.removeEventListener('keydown', onKey);
+      resolve(v);
+    };
+    const doOk = () => close(onConfirm ? onConfirm(root) : true);
+    const onKey = (e) => {
+      if (e.key === 'Escape') close(null);
+      else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) doOk();
+    };
+    root.querySelector('.mcancel').onclick = () => close(null);
+    root.querySelector('.mok').onclick = doOk;
+    root.querySelector('.overlay').onclick = (e) => { if (e.target.classList.contains('overlay')) close(null); };
+    document.addEventListener('keydown', onKey);
+    const f = root.querySelector('textarea, input, select');
+    if (f) f.focus();
+  });
 }
 
 /* ----------------------------------------------------------------- driving -- */
@@ -204,8 +251,17 @@ document.addEventListener('click', (e) => {
   }
   const run = e.target.closest('.run');
   if (run && run.dataset.run) {
-    const { command, args } = parseCmd(run.dataset.run);
-    if (confirm(`Run  ${run.dataset.run}  ?\nThis spends model tokens and may change your code.`)) runCommand(command, args);
+    openModal({
+      title: 'Run this step?',
+      bodyHTML: `<p>Runs <code>${esc(run.dataset.run)}</code> via opencode.</p><p class="mhint">Spends model tokens and may change your code.</p>`,
+      confirmLabel: 'Run',
+      onConfirm: () => true,
+    }).then((ok) => {
+      if (ok) {
+        const { command, args } = parseCmd(run.dataset.run);
+        runCommand(command, args);
+      }
+    });
     return;
   }
   if (run && run.dataset.human) {
@@ -219,9 +275,14 @@ document.addEventListener('click', (e) => {
   }
 });
 
-$('newTask').addEventListener('click', () => {
-  const desc = prompt('Describe the task (an analyst agent will write the spec):');
-  if (desc && desc.trim()) runCommand('spec', [desc.trim()]);
+$('newTask').addEventListener('click', async () => {
+  const desc = await openModal({
+    title: 'New task',
+    bodyHTML: `<p class="mhint">An analyst agent turns this into a spec with acceptance criteria.</p><textarea id="mDesc" rows="4" placeholder="e.g. Contact section with a glass form, email validation, and a shutter-flash on submit"></textarea>`,
+    confirmLabel: 'Create task',
+    onConfirm: (r) => r.querySelector('#mDesc').value.trim(),
+  });
+  if (desc) runCommand('spec', [desc]);
 });
 
 tick();

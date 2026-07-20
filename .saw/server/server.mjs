@@ -72,16 +72,40 @@ function readModel(root) {
   }
 }
 
-function writeModel(root, model) {
-  const p = path.join(root, 'opencode.json');
-  let cfg = {};
+function readConfig(root) {
   try {
-    cfg = JSON.parse(fs.readFileSync(p, 'utf8').replace(/^﻿/, ''));
+    return JSON.parse(fs.readFileSync(path.join(root, 'opencode.json'), 'utf8').replace(/^﻿/, ''));
   } catch {
-    /* new file */
+    return {};
   }
+}
+function writeConfig(root, cfg) {
+  fs.writeFileSync(path.join(root, 'opencode.json'), JSON.stringify(cfg, null, 2) + '\n');
+}
+function writeModel(root, model) {
+  const cfg = readConfig(root);
   cfg.model = model;
-  fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n');
+  writeConfig(root, cfg);
+}
+function writeProviderKey(root, id, apiKey) {
+  const cfg = readConfig(root);
+  cfg.provider = cfg.provider || {};
+  cfg.provider[id] = cfg.provider[id] || {};
+  cfg.provider[id].options = { ...(cfg.provider[id].options || {}), apiKey };
+  writeConfig(root, cfg);
+}
+
+// `opencode models` takes ~1-2s (spawns the binary) — cache it so the Settings
+// tab doesn't stall every time it opens.
+let modelsCache = { t: 0, list: [] };
+function models(root) {
+  if (Date.now() - modelsCache.t < 60000 && modelsCache.list.length) return modelsCache.list;
+  const bin = runner.resolveOpencode();
+  if (!bin) return [];
+  const r = spawnSync(bin, ['models'], { encoding: 'utf8', cwd: root });
+  const list = r.status === 0 ? r.stdout.split(/\r?\n/).map((s) => s.trim()).filter(Boolean) : [];
+  if (list.length) modelsCache = { t: Date.now(), list };
+  return list;
 }
 
 export function start(root = process.cwd(), port = 4173) {
@@ -131,19 +155,35 @@ export function start(root = process.cwd(), port = 4173) {
       return job ? json(res, 200, job) : json(res, 404, { error: 'no such job' });
     }
 
-    if (url === '/api/models' && method === 'GET') {
-      const bin = runner.resolveOpencode();
-      if (!bin) return json(res, 200, { models: [] });
-      const r = spawnSync(bin, ['models'], { encoding: 'utf8' });
-      const models = r.status === 0 ? r.stdout.split(/\r?\n/).map((s) => s.trim()).filter(Boolean) : [];
-      return json(res, 200, { models });
-    }
+    if (url === '/api/models' && method === 'GET') return json(res, 200, { models: models(root) });
     if (url === '/api/settings' && method === 'GET') return json(res, 200, { model: readModel(root) });
     if (url === '/api/settings' && method === 'POST') {
       const body = await readBody(req);
       if (!body.model) return json(res, 400, { error: 'model is required' });
       writeModel(root, String(body.model));
       return json(res, 200, { model: String(body.model) });
+    }
+    if (url === '/api/auth' && method === 'GET') {
+      const bin = runner.resolveOpencode();
+      if (!bin) return json(res, 200, { text: 'opencode not on PATH' });
+      const r = spawnSync(bin, ['auth', 'list'], { encoding: 'utf8' });
+      // strip ANSI colors and TUI box-drawing so the browser shows clean text
+      const text = (r.stdout || r.stderr || '')
+        .replace(/\x1b\[[0-9;]*m/g, '')
+        .split(/\r?\n/)
+        .map((l) => l.replace(/^[│┌└├╰╭]\s?/, '').trim())
+        .filter(Boolean)
+        .join('\n');
+      return json(res, 200, { text: text || 'no providers configured' });
+    }
+    if (url === '/api/provider' && method === 'POST') {
+      const body = await readBody(req);
+      const id = String(body.id || '').trim().toLowerCase();
+      const apiKey = String(body.apiKey || '');
+      if (!/^[a-z0-9-]+$/.test(id)) return json(res, 400, { error: 'provider id must be a slug (e.g. anthropic, openai, openrouter)' });
+      if (!apiKey) return json(res, 400, { error: 'API key is required' });
+      writeProviderKey(root, id, apiKey);
+      return json(res, 200, { ok: true, id });
     }
 
     serveStatic(res, url);
@@ -152,6 +192,14 @@ export function start(root = process.cwd(), port = 4173) {
   server.listen(port, '127.0.0.1', () => {
     console.log(`\n  \x1b[38;5;208m◢◤ Saw Board\x1b[0m  →  http://localhost:${port}`);
     console.log(`  project: ${path.basename(root)}   ${runner.opencodeAvailable() ? '' : '(opencode not on PATH — runs disabled)'}(Ctrl+C to stop)\n`);
+    // warm the models cache so the Settings tab is instant on first open
+    setTimeout(() => {
+      try {
+        models(root);
+      } catch {
+        /* ignore */
+      }
+    }, 50);
   });
   return server;
 }
